@@ -59,9 +59,12 @@ class ReportGenerator:
             lines.append(f"PR       : #{report.pr_number} {pr_title}")
 
         # Changed files
-        lines.append(f"Changed  : {report.changed_files[0]}")
-        for file_path in report.changed_files[1:]:
-            lines.append(f"           {file_path}")
+        if report.changed_files:
+            lines.append(f"Changed  : {report.changed_files[0]}")
+            for file_path in report.changed_files[1:]:
+                lines.append(f"           {file_path}")
+        else:
+            lines.append("Changed  : No changed files detected")
 
         lines.append("")
 
@@ -78,13 +81,13 @@ class ReportGenerator:
             low_callers = [c for c in report.direct_callers if c.impact_level == 'LOW']
 
             for caller in high_callers:
-                lines.append(f"  {caller.repo:30} → {caller.detail:40} [HIGH]")
+                lines.append(f"  {caller.repo:30} -> {caller.detail:40} [HIGH]")
 
             for caller in medium_callers:
-                lines.append(f"  {caller.repo:30} → {caller.detail:40} [MEDIUM]")
+                lines.append(f"  {caller.repo:30} -> {caller.detail:40} [MEDIUM]")
 
             for caller in low_callers:
-                lines.append(f"  {caller.repo:30} → {caller.detail:40} [LOW]")
+                lines.append(f"  {caller.repo:30} -> {caller.detail:40} [LOW]")
         else:
             lines.append("  No direct callers detected.")
 
@@ -93,7 +96,7 @@ class ReportGenerator:
         if report.indirect_callers:
             lines.append("Indirect:")
             for caller in report.indirect_callers:
-                lines.append(f"  {caller.repo:30} → {caller.detail:40} [{caller.impact_level}]")
+                lines.append(f"  {caller.repo:30} -> {caller.detail:40} [{caller.impact_level}]")
             lines.append("")
 
         # Coverage
@@ -102,8 +105,8 @@ class ReportGenerator:
 
         if report.coverage_items:
             for item in report.coverage_items:
-                status = "✓" if not item.below_threshold else "⚠ below 80% threshold"
-                lines.append(f"  {item.file_path:40} → {item.coverage_percent:.0f}% {status}")
+                status = "[OK]" if not item.below_threshold else "[WARNING] below 80% threshold"
+                lines.append(f"  {item.file_path:40} -> {item.coverage_percent:.0f}% {status}")
         else:
             lines.append("  No coverage data available")
 
@@ -115,16 +118,16 @@ class ReportGenerator:
 
         if report.risk_level == "CAUTION":
             high_impact_count = sum(1 for c in report.direct_callers if c.impact_level == 'HIGH')
-            lines.append(f"  ⚠ CAUTION — {high_impact_count} high-impact caller(s) detected.")
+            lines.append(f"  [CAUTION] {high_impact_count} high-impact caller(s) detected.")
 
             if report.suggested_action:
                 lines.append(f"  Suggested action: {report.suggested_action}")
         elif report.risk_level == "WARNING":
-            lines.append(f"  ⚠ WARNING — Multiple issues detected.")
+            lines.append(f"  [WARNING] Multiple issues detected.")
             if report.suggested_action:
                 lines.append(f"  Suggested action: {report.suggested_action}")
         else:
-            lines.append("  ✓ OK — No high-risk issues detected.")
+            lines.append("  [OK] No high-risk issues detected.")
 
         lines.append("")
 
@@ -175,7 +178,7 @@ class ReportGenerator:
             lines.append("**Indirect callers:**")
             lines.append("")
             for caller in report.indirect_callers:
-                lines.append(f"- `{caller.repo}` → {caller.detail} *({caller.impact_level})*")
+                lines.append(f"- `{caller.repo}` -> {caller.detail} *({caller.impact_level})*")
             lines.append("")
 
         # Coverage
@@ -186,7 +189,7 @@ class ReportGenerator:
             below_threshold = [item for item in report.coverage_items if item.below_threshold]
 
             if below_threshold:
-                lines.append(f"⚠️ **{len(below_threshold)} file(s) below {self.coverage_threshold}% threshold:**")
+                lines.append(f"WARNING️ **{len(below_threshold)} file(s) below {self.coverage_threshold}% threshold:**")
                 lines.append("")
                 lines.append("| File | Coverage |")
                 lines.append("|------|----------|")
@@ -214,14 +217,14 @@ class ReportGenerator:
 
         if report.risk_level == "CAUTION":
             high_impact_count = sum(1 for c in report.direct_callers if c.impact_level == 'HIGH')
-            lines.append(f"⚠️ **CAUTION** — {high_impact_count} high-impact caller(s) detected.")
+            lines.append(f"WARNING️ **CAUTION** — {high_impact_count} high-impact caller(s) detected.")
             lines.append("")
 
             if report.suggested_action:
                 lines.append(f"**Suggested action:** {report.suggested_action}")
                 lines.append("")
         elif report.risk_level == "WARNING":
-            lines.append("⚠️ **WARNING** — Multiple issues detected.")
+            lines.append("WARNING️ **WARNING** — Multiple issues detected.")
             lines.append("")
             if report.suggested_action:
                 lines.append(f"**Suggested action:** {report.suggested_action}")

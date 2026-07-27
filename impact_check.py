@@ -5,6 +5,7 @@ Coordinates git diff, dependency analysis, coverage analysis, and report generat
 """
 
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -91,11 +92,10 @@ class ImpactChecker:
             )
 
             if result.returncode == 0:
-                import json
                 data = json.loads(result.stdout)
                 return str(data.get('number')), data.get('title')
 
-        except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError):
+        except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError, Exception):
             pass
 
         return None, None
@@ -115,13 +115,12 @@ class ImpactChecker:
             if result.returncode != 0:
                 return False
 
-            import json
             current_body = json.loads(result.stdout).get('body', '')
 
             # Check if report already exists
             if "IMPACT CHECK REPORT" in current_body:
                 # Remove old report
-                parts = current_body.split("## 🔍 IMPACT CHECK REPORT")
+                parts = current_body.split("## IMPACT CHECK REPORT")
                 current_body = parts[0].rstrip()
 
             # Append new report
@@ -138,7 +137,7 @@ class ImpactChecker:
 
             return result.returncode == 0
 
-        except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError):
+        except (subprocess.TimeoutExpired, FileNotFoundError, json.JSONDecodeError, Exception):
             return False
 
     def run_analysis(self, append_pr: bool = True) -> ImpactCheckReport:
@@ -148,7 +147,7 @@ class ImpactChecker:
         changed_files = self.get_changed_files()
 
         if not changed_files:
-            print("⚠ No changed files detected. Make sure you're on a feature branch.")
+            print("WARNING: No changed files detected. Make sure you're on a feature branch.")
             changed_files = []
 
         current_repo = self.get_current_repo_name()
@@ -190,11 +189,11 @@ class ImpactChecker:
 
         # Try to load existing coverage data
         if self.coverage_analyzer.load_coverage_json():
-            print("✓ Loaded coverage data from coverage.json")
+            print("Loaded coverage data from coverage.json")
         elif self.coverage_analyzer.load_coverage_xml():
-            print("✓ Loaded coverage data from coverage.xml")
+            print("Loaded coverage data from coverage.xml")
         else:
-            print("ℹ No coverage data found. Run pytest with --cov to generate coverage.")
+            print("No coverage data found. Run pytest with --cov to generate coverage.")
 
         coverage_results = self.coverage_analyzer.analyze_changed_files(changed_files)
 
@@ -236,9 +235,9 @@ class ImpactChecker:
             markdown_report = self.report_generator.generate_markdown_report(report)
             if self.append_to_pr_description(markdown_report):
                 report.appended_to_pr = True
-                print("✓ Report appended to PR description")
+                print("Report appended to PR description")
             else:
-                print("⚠ Failed to append report to PR description")
+                print("WARNING: Failed to append report to PR description")
 
         return report
 
@@ -283,7 +282,7 @@ def main():
         repo_path=args.repo_path
     )
 
-    print("🔍 Running impact check analysis...")
+    print("Running impact check analysis...")
     print(f"   Work directory: {checker.work_dir}")
     print(f"   Repository: {checker.repo_path}")
     print(f"   Coverage threshold: {args.coverage_threshold}%")
