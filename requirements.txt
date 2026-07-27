@@ -1,0 +1,9 @@
+# No external dependencies required
+# Uses only Python standard library:
+# - ast (for static analysis)
+# - pathlib (for file operations)
+# - subprocess (for git/gh CLI)
+# - json (for data parsing)
+# - xml.etree.ElementTree (for coverage XML parsing)
+# - re (for pattern matching)
+# - dataclasses (for data structures)

@@ -1,0 +1,36 @@
+🔍 Running impact check analysis...
+   Work directory: C:\Users\Dell\work
+   Repository: C:\Users\Dell\work\kube-wizr-logger-history
+   Coverage threshold: 80%
+
+✓ Loaded coverage data from coverage.json
+
+IMPACT CHECK REPORT
+==================================================
+PR       : #7310 DEV:FEATURE(BE)(add) — Add token usage to details tab
+Changed  : kube-wizr-logger-history / app/routers/history.py
+           kube-wizr-logger-history / app/utilities_logger/helpers/history_helper.py
+
+BLAST RADIUS
+--------------------------------------------------
+Direct callers (cross-repo):
+  kube-wizr-agentmanager      → GET /api/history/execution          [HIGH]
+  kube-wizr-app-orchestrator  → GET /api/history/execution          [HIGH]
+  webapp-wizrai-connect       → GET /api/history via WizrAPIInstance [MEDIUM]
+
+Indirect:
+  kube-wizr-insights-manager  → reads execution history for analytics [LOW]
+
+COVERAGE ON CHANGED PATHS
+--------------------------------------------------
+  history_helper.py                          → 61% ⚠ below 80% threshold
+  history.py (router)                        → 86% ✓
+
+RISK VERDICT
+--------------------------------------------------
+  ⚠ CAUTION — 2 high-impact caller(s) detected.
+  Suggested action: run /coverage-gap on history_helper.py before merge
+
+APPENDED TO PR DESCRIPTION: YES
+
+✓ Report appended to PR description
